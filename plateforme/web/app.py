@@ -10,6 +10,7 @@ Configuration par variables d'environnement :
                      demandée : à réserver à un usage sur votre propre machine.
 - YAME_EXIGER_MOT_DE_PASSE  s'il vaut 1, l'application refuse de démarrer sans
                      mot de passe. L'image Docker le fixe à 1.
+- YAME_IA_CLE et les autres réglages de l'agent IA : voir plateforme/ia/client.py.
 """
 
 from __future__ import annotations
@@ -24,14 +25,16 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Resp
 from starlette.concurrency import run_in_threadpool
 
 from .. import __version__
+from ..ia import propositions
 from ..socle import dossier, modules
 from ..socle.erreurs import ErreurEtude
 from ..socle.modele import Etude
 from ..socle.rendu import page, rapport_autonome
 from ..socle.stockage import EtapeVerrouillee, Stockage
+from .ia import brancher as brancher_ia
 
 
-def creer_application(stockage: Stockage | None = None) -> FastAPI:
+def creer_application(stockage: Stockage | None = None, fabrique_client=None) -> FastAPI:
     application = FastAPI(
         title="YAME / YARED", version=__version__,
         description="Conception de matériels par simulation : dimensionnement d'un système (YAME) et conception de composants (YARED).",
@@ -45,6 +48,10 @@ def creer_application(stockage: Stockage | None = None) -> FastAPI:
             "YAME_MOT_DE_PASSE est vide. Définissez un mot de passe avant de démarrer "
             "(fichier .env), ou retirez YAME_EXIGER_MOT_DE_PASSE pour un usage sur votre propre machine."
         )
+
+    # Modules validés après coup, et travaux de l'agent coupés par un arrêt du serveur.
+    modules.charger_ajoutes(propositions.dossier_des_ajouts(base.dossier))
+    base.interrompre_travaux_en_cours()
 
     def noms() -> dict:
         return {m.identifiant: m.nom for m in modules.tous()}
@@ -243,5 +250,6 @@ def creer_application(stockage: Stockage | None = None) -> FastAPI:
         ligne["avancement"] = {str(k): v for k, v in base.avancement(identifiant).items()}
         return ligne
 
+    brancher_ia(application, base, formulaire, fabrique_client)
     return application
 

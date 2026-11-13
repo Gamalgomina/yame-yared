@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block titre %}Logiciels embarqués — YAME / YARED{% endblock %}
+{% block contenu %}
+<h1>Logiciels embarqués</h1>
+<p class="sous-titre">Les logiciels libres qui tournent à l'intérieur de la plateforme. Les modules et l'agent IA s'en servent ;
+vous n'avez pas à les ouvrir. Un logiciel absent ne bloque rien : les calculs qui en dépendent sont simplement sautés et signalés.</p>
+
+<div class="defilement"><table>
+<thead><tr><th>Rôle</th><th>Logiciel</th><th>Ce qu'il apporte</th><th>État sur ce serveur</th></tr></thead>
+<tbody>
+{% for o in outils %}
+  <tr><td><b>{{ o.nom }}</b></td><td>{{ o.logiciel }}</td><td>{{ o.role }}</td>
+  <td><span class="pastille {{ 'validee' if o.disponible else 'defaut' }}">{{ "disponible" if o.disponible else "absent" }}</span><br>{{ o.etat }}</td></tr>
+{% endfor %}
+</tbody></table></div>
+
+<h2>Ce qui manque encore</h2>
+<ul>
+<li><b>Vol d'une mission complète en simulation</b> : le simulateur vérifie les réglages, il ne fait pas encore voler la mission.</li>
+<li><b>Calculs tout faits</b> pour la mécanique des fluides, l'électromagnétisme et les cartes électroniques : ces logiciels ne servent pour l'instant qu'à travers l'agent IA.</li>
+<li><b>OpenVSP, OpenWAM, FEMM</b> : non embarqués. AeroSandbox et GetDP tiennent les rôles d'OpenVSP et de FEMM.</li>
+</ul>
+
+{% if erreurs_modules %}
+<h2>Modules ajoutés qui n'ont pas pu être chargés</h2>
+<div class="erreur"><ul>{% for fichier, erreur in erreurs_modules.items() %}<li><b>{{ fichier }}</b> : {{ erreur }}</li>{% endfor %}</ul></div>
+{% endif %}
+{% endblock %}

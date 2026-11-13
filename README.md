@@ -1,4 +1,4 @@
-# YAME / YARED — version 0.2
+# YAME / YARED — version 0.3
 
 Plateforme de conception de matériels par simulation. On décrit un besoin en quelques réponses ;
 la plateforme comble les vides, calcule, et remet un **dossier de conception** avec un **plan de
@@ -27,6 +27,46 @@ le moteur thermique équipe aussi bien le drone que le véhicule terrestre.
 
 Chaque module indique ses propres limites dans le rapport.
 
+## Logiciels embarqués
+
+La plateforme ne réécrit pas les logiciels de calcul : elle les embarque et les pilote. La page
+« Logiciels » de l'application indique lesquels sont installés sur le serveur.
+
+| Rôle | Logiciel | Ce que la plateforme en fait |
+|---|---|---|
+| CAO | CadQuery (noyau OpenCascade, celui de FreeCAD) | Dessine une pièce depuis un script : STEP, STL, volume, masse |
+| Aérodynamique | AeroSandbox et NeuralFoil | Portance, traînée, finesse et point de vol sur la forme de l'avion |
+| Structure | gmsh et CalculiX | Contraintes et déformation d'une pièce encastrée et chargée |
+| Autopilote | ArduPilot | Génère le fichier de réglages de départ et une mission |
+| Simulateur de vol | ArduPilot SITL et pymavlink | Démarre le vrai logiciel de vol et vérifie qu'il accepte chaque réglage |
+| Mécanique des fluides | OpenFOAM | Installé et essayé ; sans calcul tout fait, piloté par l'agent IA |
+| Électromagnétisme | GetDP | Installé ; sans calcul tout fait, piloté par l'agent IA |
+| Cartes électroniques | KiCad et SKiDL | Installé ; sans calcul tout fait, piloté par l'agent IA |
+
+Non embarqués : OpenVSP (pas de paquet installable ; AeroSandbox tient ce rôle), OpenWAM et FEMM
+(GetDP tient le rôle de FEMM). Le simulateur vérifie les réglages mais ne fait pas encore voler une
+mission complète.
+
+## Agent IA et atelier de R&D
+
+Avec une clé d'API (variable `YAME_IA_CLE`), un agent IA travaille dans la plateforme, page « Agent IA » :
+
+- **Piloter une conception** : vous décrivez le besoin en langage libre ; l'agent choisit le module,
+  le remplit sans rien inventer, lance l'étude, la vérifie avec les logiciels embarqués et rend compte.
+- **Atelier de R&D** : vous demandez un composant ou un matériel que la plateforme ne sait pas faire ;
+  l'agent étudie l'état de l'art, écrit un modèle, l'essaie, puis **propose un nouveau module**.
+
+Un module proposé est contrôlé automatiquement (il doit se charger, réussir son propre exemple, fournir
+un plan de prototypage et ses limites). Il n'entre dans la plateforme qu'après **relecture et validation
+par une personne**. Il reste une hypothèse tant qu'il n'a pas été recalé sur des essais.
+
+L'agent calcule dans un bac à sable : processus séparé, durée limitée, sans la clé d'IA ni le mot de
+passe. Ce bac à sable n'isole ni le réseau ni le disque : voir les précautions dans DEPLOIEMENT.md.
+L'agent refuse toute demande d'armement.
+
+> L'agent a été vérifié avec un service d'IA simulé. Il n'a pas encore tourné avec une vraie clé :
+> le premier travail réel est un essai.
+
 ## Ce que remet la plateforme
 
 Pour chaque étude, un dossier de conception (archive zip) :
@@ -49,12 +89,14 @@ mesures sont conservées et reportées dans le dossier.
 Il faut Python 3.11 ou plus récent.
 
 ```
-pip install -e ".[dev,cao]"
+pip install -e ".[dev,cao,calcul]"
 python -m pytest -q                      # contrôles automatiques
 python -m plateforme serveur             # application web sur http://127.0.0.1:8000
 ```
 
-`cao` est facultatif : sans lui, tout fonctionne sauf les fichiers STEP.
+`cao` et `calcul` sont facultatifs : sans eux, les logiciels correspondants sont signalés « non installés »
+et le reste fonctionne. CalculiX, GetDP, OpenFOAM et KiCad s'installent avec le gestionnaire de paquets du
+système (`apt install calculix-ccx getdp openfoam kicad` sous Ubuntu 24.04).
 
 En ligne de commande :
 
@@ -90,6 +132,9 @@ L'application expose une API JSON, documentée sur `/docs` :
 | POST | `/api/modules/{module}/etudes` | Lancer une étude |
 | GET | `/api/etudes` | Liste des études |
 | GET | `/api/etudes/{n}` | Une étude et l'avancement de son prototypage |
+| GET | `/api/outils` | Logiciels embarqués et leur état |
+| POST | `/api/ia/travaux` | Confier un travail à l'agent IA |
+| GET | `/api/ia/travaux/{n}` | État, journal et compte rendu d'un travail |
 
 ## Organisation du code
 
@@ -99,6 +144,8 @@ plateforme/
                   dossier de conception, rendu, stockage
   familles/       YAME : un module par famille de matériels
   composants/     YARED : un module par composant
+  outils/         logiciels embarqués et bac à sable de calcul
+  ia/             agent IA, atelier de R&D, contrôle des modules proposés
   web/            application web et API
 missions/         besoins d'exemple
 tests/            contrôles automatiques
@@ -117,8 +164,10 @@ modification. Un nouveau module n'est fiable qu'après recalage sur de vrais ess
 ## Ce que la plateforme ne fait pas encore
 
 - Forme 3D et plans de la cellule d'un drone ou du châssis d'un véhicule ; calcul de résistance.
-- Stabilité et commandes de vol ; simulation de vol.
-- Modules YARED pour la génératrice, les contrôleurs de moteur, l'autopilote, la radio, les batteries.
+- Stabilité et commandes de vol ; vol d'une mission complète en simulation.
+- Modules YARED pour la génératrice, les contrôleurs de moteur, la radio, les batteries : à demander à
+  l'atelier de R&D.
+- Calculs tout faits avec OpenFOAM, GetDP et KiCad : ils ne servent qu'à travers l'agent IA.
 - Recalage automatique à partir des mesures saisies : il se fait à la main, par les réglages experts.
 - Comptes utilisateurs multiples : un seul identifiant protège toute l'application.
 

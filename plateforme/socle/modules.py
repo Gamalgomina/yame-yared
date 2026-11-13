@@ -56,3 +56,59 @@ def obtenir(identifiant: str) -> Module:
     if identifiant not in _REGISTRE:
         raise KeyError(f"Module inconnu : {identifiant}")
     return _REGISTRE[identifiant]
+
+
+# --- Modules ajoutés après coup (proposés par l'agent IA, validés par un humain) ---
+
+MODULES_INTEGRES: set = set()
+_ERREURS_AJOUTES: dict = {}
+
+
+def integres() -> set:
+    """Identifiants des modules livrés avec la plateforme."""
+    _charger()
+    if not MODULES_INTEGRES:
+        MODULES_INTEGRES.update(_REGISTRE)
+    return MODULES_INTEGRES
+
+
+def charger_fichier(chemin) -> Module:
+    """Charge un module depuis un fichier Python. Renvoie le module enregistré."""
+    import importlib.util
+    from pathlib import Path
+
+    chemin = Path(chemin)
+    avant = set(integres()) | set(_REGISTRE)
+    specification = importlib.util.spec_from_file_location(f"yame_module_ajoute_{chemin.stem.replace('-', '_')}", chemin)
+    code = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(code)
+    nouveaux = [i for i in _REGISTRE if i not in avant]
+    if len(nouveaux) != 1:
+        for i in nouveaux:
+            _REGISTRE.pop(i, None)
+        raise ValueError(f"{chemin.name} doit enregistrer exactement un nouveau module (trouvé : {len(nouveaux)}).")
+    return _REGISTRE[nouveaux[0]]
+
+
+def charger_ajoutes(dossier) -> dict:
+    """Charge tous les modules validés du dossier. Renvoie {fichier: erreur} pour ceux qui échouent."""
+    from pathlib import Path
+
+    integres()
+    _ERREURS_AJOUTES.clear()
+    dossier = Path(dossier)
+    if dossier.is_dir():
+        for chemin in sorted(dossier.glob("*.py")):
+            if chemin.stem in _REGISTRE:
+                continue
+            try:
+                charger_fichier(chemin)
+            except Exception as erreur:  # un module défectueux ne doit pas empêcher le démarrage
+                _ERREURS_AJOUTES[chemin.name] = f"{type(erreur).__name__} : {erreur}"
+    return dict(_ERREURS_AJOUTES)
+
+
+def retirer(identifiant: str) -> None:
+    if identifiant in integres():
+        raise ValueError("Un module livré avec la plateforme ne peut pas être retiré.")
+    _REGISTRE.pop(identifiant, None)

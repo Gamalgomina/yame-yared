@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block titre %}Agent IA — YAME / YARED{% endblock %}
+{% block contenu %}
+<h1>Agent IA</h1>
+<p class="sous-titre">Décrivez ce que vous voulez en langage libre. L'agent se sert des modules et des logiciels embarqués,
+puis rend un compte rendu. Ce qu'il propose de nouveau n'entre dans la plateforme qu'après votre validation.</p>
+
+{% if erreur %}<div class="erreur">{{ erreur }}</div>{% endif %}
+
+{% if not active %}
+<div class="avertissement"><b>L'agent n'est pas configuré.</b> Il lui faut une clé d'API Anthropic. Ajoutez-la dans le fichier
+<code>.env</code> du serveur, à la ligne <code>YAME_IA_CLE=</code>, puis redémarrez la plateforme. La clé ne s'affiche jamais ici.</div>
+{% else %}
+<p>Modèle utilisé : <b>{{ modele }}</b>. Recherche web : <b>{{ "activée" if recherche_web else "désactivée" }}</b>.
+Chaque travail consomme des unités facturées par le fournisseur du modèle.</p>
+{% endif %}
+
+<form class="besoin" method="post" action="/ia" onsubmit="var b=this.querySelector('button');b.disabled=true;b.textContent='Envoi…';">
+  <div class="champ">
+    <label for="mode">Que doit faire l'agent ?</label>
+    <select id="mode" name="mode">
+      <option value="pilote" {{ "selected" if mode == "pilote" }}>Piloter une conception : choisir le module, lancer les études, expliquer</option>
+      <option value="atelier" {{ "selected" if mode == "atelier" }}>Atelier de R&amp;D : concevoir ce que la plateforme ne sait pas encore faire</option>
+    </select>
+  </div>
+  <div class="champ">
+    <label for="demande">Votre demande <span class="requis">*</span></label>
+    <textarea id="demande" name="demande" rows="6" required
+      placeholder="Exemples :&#10;— Un drone qui emporte 2 kg pendant 8 heures, sans piste.&#10;— Concevoir une génératrice de 150 W entraînée à 5 000 tr/min par le moteur thermique.">{{ demande }}</textarea>
+    <div class="aide">N'écrivez ni mot de passe ni donnée personnelle : la demande est envoyée au fournisseur du modèle d'IA.</div>
+  </div>
+  <p><button type="submit" {{ "disabled" if not active }}>Confier le travail à l'agent</button></p>
+</form>
+
+<h2>Travaux</h2>
+{% if travaux %}
+<div class="defilement"><table>
+<thead><tr><th>N°</th><th>Demande</th><th>Travail</th><th>Créé le</th><th>État</th></tr></thead>
+<tbody>
+{% for t in travaux %}
+  <tr><td>{{ t.id }}</td><td><a href="/ia/{{ t.id }}">{{ t.demande|truncate(90) }}</a></td><td>{{ modes.get(t.mode, t.mode) }}</td>
+  <td>{{ t.cree_le }}</td><td>{{ t.etat }}</td></tr>
+{% endfor %}
+</tbody></table></div>
+{% else %}
+<p class="vide">Aucun travail pour l'instant.</p>
+{% endif %}
+
+<h2>Modules proposés par l'agent</h2>
+{% if propositions %}
+<div class="defilement"><table>
+<thead><tr><th>N°</th><th>Module</th><th>Proposé le</th><th>État</th></tr></thead>
+<tbody>
+{% for p in propositions %}
+  <tr><td>{{ p.id }}</td><td><a href="/propositions/{{ p.id }}">{{ p.nom }}</a></td><td>{{ p.cree_le }}</td><td>{{ p.etat }}</td></tr>
+{% endfor %}
+</tbody></table></div>
+{% else %}
+<p class="vide">Aucun module proposé pour l'instant.</p>
+{% endif %}
+{% endblock %}
