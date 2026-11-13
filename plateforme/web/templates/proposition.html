@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block titre %}{{ p.nom }} — module proposé{% endblock %}
+{% block contenu %}
+<h1>{{ p.nom }}</h1>
+<p class="sous-titre">Module proposé par l'agent IA le {{ p.cree_le }} — identifiant <code>{{ p.identifiant }}</code> — état : <b>{{ p.etat }}</b>
+{% if p.travail_id %} — <a href="/ia/{{ p.travail_id }}">travail n° {{ p.travail_id }}</a>{% endif %}</p>
+
+{% if erreur %}<div class="erreur">{{ erreur }}</div>{% endif %}
+
+<div class="avertissement"><b>À relire avant de valider.</b> Ce module a été écrit par une IA. Le contrôle automatique vérifie qu'il
+fonctionne, pas que sa physique est juste. Une fois validé, son code tourne avec les droits de la plateforme.
+Faites-le relire par une personne compétente, et ne considérez ses résultats comme fiables qu'après les essais
+de son plan de prototypage.</div>
+
+<h2>Ce que fait le module</h2>
+<pre class="compte-rendu">{{ p.description }}</pre>
+
+<h2>Contrôle automatique</h2>
+<pre class="compte-rendu">{{ p.controle }}</pre>
+
+<h2>Code</h2>
+<pre class="code">{{ p.code }}</pre>
+
+<h2>Décision</h2>
+{% if p.etat == "à valider" %}
+<form class="besoin" method="post" action="/propositions/{{ p.id }}/valider">
+  <div class="champ"><label><input type="checkbox" name="relu" value="oui"> J'ai relu ce code, ou je l'ai fait relire, et j'accepte qu'il tourne dans la plateforme.</label></div>
+  <p><button type="submit">Valider et activer le module</button></p>
+</form>
+<form method="post" action="/propositions/{{ p.id }}/rejeter"><button class="danger" type="submit">Rejeter</button></form>
+{% elif p.etat == "validée" %}
+<p>Module {{ "actif" if actif else "validé, mais non chargé (voir la page Logiciels)" }}.
+{% if actif %}<a class="bouton" href="/modules/{{ p.identifiant }}">Nouvelle étude avec ce module</a>{% endif %}</p>
+<form method="post" action="/propositions/{{ p.id }}/rejeter" onsubmit="return confirm('Retirer ce module de la plateforme ?');"><button class="danger" type="submit">Retirer le module</button></form>
+{% else %}
+<p>Proposition rejetée.</p>
+{% endif %}
+<p><a href="/ia">Retour à l'agent IA</a></p>
+{% endblock %}

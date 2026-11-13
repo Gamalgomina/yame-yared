@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block titre %}Travail n° {{ t.id }} — Agent IA{% endblock %}
+{% block contenu %}
+{% if en_cours %}<meta http-equiv="refresh" content="4">{% endif %}
+<h1>Travail n° {{ t.id }}</h1>
+<p class="sous-titre">{{ mode }} — demandé le {{ t.cree_le }} — état : <b>{{ t.etat }}</b></p>
+
+<h2>Demande</h2>
+<pre class="compte-rendu">{{ t.demande }}</pre>
+
+{% if en_cours %}
+<div class="attente"><b>L'agent travaille.</b> Cette page se met à jour toute seule. Un travail dure de une à plusieurs minutes.</div>
+{% elif t.etat == "interrompu" %}
+<div class="erreur"><b>Travail interrompu</b> par un redémarrage de la plateforme. Relancez la demande.</div>
+{% endif %}
+
+{% if t.compte_rendu %}
+<h2>{{ "Compte rendu" if t.etat == "terminé" else "Message" }}</h2>
+{% if t.etat == "échec" %}<div class="erreur">{{ t.compte_rendu }}</div>{% else %}<pre class="compte-rendu">{{ t.compte_rendu }}</pre>{% endif %}
+{% endif %}
+
+{% if etudes_creees or propositions or fichiers %}
+<h2>Ce que l'agent a produit</h2>
+<ul>
+{% for e in etudes_creees %}<li>Étude n° {{ e.id }} : <a href="/etudes/{{ e.id }}">{{ e.titre }}</a></li>{% endfor %}
+{% for p in propositions %}<li>Module proposé : <a href="/propositions/{{ p.id }}">{{ p.nom }}</a> — {{ p.etat }}</li>{% endfor %}
+{% if fichiers %}<li><a href="/ia/{{ t.id }}/fichiers.zip">Fichiers de travail</a> (pièces CAO, résultats de calcul)</li>{% endif %}
+</ul>
+{% endif %}
+
+<h2>Journal</h2>
+{% if journal %}
+<ul class="journal">
+{% for l in journal %}
+  <li class="{{ 'outil' if l.genre == 'outil' else ('erreur-outil' if l.genre == 'erreur' else '') }}">
+    <span class="heure">{{ l.heure }}</span>
+    <b>{{ {"message": "L'agent", "outil": "Appel d'outil", "resultat": "Résultat", "erreur": "Échec de l'outil"}.get(l.genre, l.genre) }}</b>
+    <pre>{{ l.texte }}</pre>
+  </li>
+{% endfor %}
+</ul>
+{% else %}
+<p class="vide">Rien pour l'instant.</p>
+{% endif %}
+{% if t.jetons_entree or t.jetons_sortie %}
+<p class="sous-titre">Consommation : {{ t.jetons_entree }} unités en entrée, {{ t.jetons_sortie }} en sortie.</p>
+{% endif %}
+<p><a href="/ia">Retour à l'agent IA</a></p>
+{% endblock %}
