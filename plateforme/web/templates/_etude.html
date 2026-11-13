@@ -1,0 +1,50 @@
+<div class="avertissement"><b>Avant-projet non validé.</b> Ces chiffres viennent de modèles simplifiés qui n'ont pas encore été
+recalés sur des essais. Comptez une incertitude de l'ordre de 15 à 25 %. Aucune pièce ne doit être mise en service sur cette seule base.</div>
+
+<div class="cles">
+{% for c in etude.chiffres %}
+  <div class="cle"><b>{{ c.valeur }}</b><span>{{ c.libelle }}</span></div>
+{% endfor %}
+</div>
+
+<h2>Besoin et hypothèses</h2>
+<p>La plateforme a reçu les valeurs marquées « donné ». Elle a déduit ou comblé les autres, et indique pourquoi.
+Chaque valeur peut être imposée en modifiant l'étude.</p>
+<div class="defilement"><table>
+<thead><tr><th>Paramètre</th><th>Valeur</th><th>Origine</th><th>Pourquoi</th></tr></thead>
+<tbody>
+{% for h in etude.hypotheses %}
+  <tr><td>{{ h.libelle }}</td><td>{{ h.valeur|texte }}{% if h.unite %} {{ h.unite }}{% endif %}</td>
+  <td><span class="pastille {{ ORIGINES[h.origine][1] }}">{{ ORIGINES[h.origine][0] }}</span></td><td>{{ h.raison }}</td></tr>
+{% endfor %}
+</tbody></table></div>
+
+{% for s in etude.sections %}
+<h2>{{ s.titre }}</h2>
+{% for p in s.paragraphes %}<p>{{ p }}</p>{% endfor %}
+{% for t in s.tableaux %}
+  {% if t.titre %}<h3>{{ t.titre }}</h3>{% endif %}
+  <div class="defilement"><table>
+  <thead><tr>{% for e in t.entetes %}<th>{{ e }}</th>{% endfor %}</tr></thead>
+  <tbody>{% for ligne in t.lignes %}<tr>{% for c in ligne %}<td>{{ c }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+  </table></div>
+{% endfor %}
+{% if s.alertes %}
+  <div class="avertissement"><b>Points d'attention.</b><ul>{% for a in s.alertes %}<li>{{ a }}</li>{% endfor %}</ul></div>
+{% endif %}
+{% endfor %}
+
+{% if etude.nomenclature %}
+<h2>Nomenclature</h2>
+<p>« À fabriquer » : pièce à réaliser en atelier. « À concevoir avec YARED » : composant qui demande sa propre étude.
+« Élément de base » : ce qu'il faut approvisionner.</p>
+<div class="defilement"><table>
+<thead><tr><th>Désignation</th><th>Quantité</th><th>Nature</th><th>Spécification</th></tr></thead>
+<tbody>{% for a in etude.nomenclature %}<tr><td>{{ a.designation }}</td><td>{{ a.quantite|texte }}</td><td>{{ a.nature }}</td><td>{{ a.specification }}</td></tr>{% endfor %}</tbody>
+</table></div>
+{% endif %}
+
+{% if etude.limites %}
+<h2>Limites de cette version</h2>
+<ul>{% for l in etude.limites %}<li>{{ l }}</li>{% endfor %}</ul>
+{% endif %}

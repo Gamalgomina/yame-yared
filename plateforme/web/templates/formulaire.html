@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block titre %}{{ module.nom }} — nouvelle étude{% endblock %}
+{% macro champ(q) %}
+<div class="champ">
+  <label for="{{ q.cle }}">{{ q.libelle }}{% if q.obligatoire %} <span class="requis">*</span>{% endif %}</label>
+  {% set v = valeurs.get(q.cle, "") %}
+  {% if q.type == "nombre" %}
+    <div class="avec-unite"><input type="text" inputmode="decimal" id="{{ q.cle }}" name="{{ q.cle }}" value="{{ v }}"
+      {% if q.obligatoire %}required{% else %}placeholder="laisser vide : la plateforme choisit"{% endif %}>{% if q.unite %}<span>{{ q.unite }}</span>{% endif %}</div>
+  {% elif q.type == "oui_non" %}
+    <select id="{{ q.cle }}" name="{{ q.cle }}">
+      <option value="" {{ "selected" if v == "" }}>Je ne sais pas</option>
+      <option value="oui" {{ "selected" if v in ("oui", true) }}>Oui</option>
+      <option value="non" {{ "selected" if v in ("non", false) and v != "" }}>Non</option>
+    </select>
+  {% elif q.type == "choix" %}
+    <select id="{{ q.cle }}" name="{{ q.cle }}" {{ "required" if q.obligatoire }}>
+      {% if not q.obligatoire %}<option value="">La plateforme choisit</option>{% endif %}
+      {% for valeur, libelle in q.choix %}<option value="{{ valeur }}" {{ "selected" if v|string == valeur }}>{{ libelle }}</option>{% endfor %}
+    </select>
+  {% else %}
+    <input type="text" id="{{ q.cle }}" name="{{ q.cle }}" value="{{ v }}">
+  {% endif %}
+  {% if q.aide %}<div class="aide">{{ q.aide }}</div>{% endif %}
+</div>
+{% endmacro %}
+{% block contenu %}
+<h1>{{ module.nom }}</h1>
+<p class="sous-titre">{{ module.description }}</p>
+{% if erreur %}<div class="erreur"><b>Étude impossible.</b> {{ erreur }}</div>{% endif %}
+<form class="besoin" method="post" action="/modules/{{ module.identifiant }}" onsubmit="var b=this.querySelector('button');b.disabled=true;b.textContent='Calcul en cours…';">
+  <div class="champ">
+    <label for="nom">Nom de l'étude</label>
+    <input type="text" id="nom" name="nom" value="{{ valeurs.get('nom', '') }}" placeholder="{{ module.nom }}">
+  </div>
+  {% for q in module.questions if not q.avance %}{{ champ(q) }}{% endfor %}
+  {% if module.questions|selectattr("avance")|list or module.accepte_expert %}
+  <details class="precisions" {{ "open" if ouvrir_precisions }}>
+    <summary>Précisions facultatives</summary>
+    <p class="aide">Laissez vide ce que vous ne savez pas : la plateforme choisit une valeur et explique pourquoi dans le rapport.</p>
+    {% for q in module.questions if q.avance %}{{ champ(q) }}{% endfor %}
+    {% if module.accepte_expert %}
+    <div class="champ">
+      <label for="expert">Réglages experts</label>
+      <textarea id="expert" name="expert" placeholder="un réglage par ligne, par exemple :&#10;rendement_helice = 0.70">{{ valeurs.get("expert", "") }}</textarea>
+      <div class="aide">Pour imposer un paramètre technique du calcul, notamment une valeur mesurée sur un prototype.</div>
+    </div>
+    {% endif %}
+  </details>
+  {% endif %}
+  <p><button type="submit">Lancer l'étude</button></p>
+</form>
+{% endblock %}

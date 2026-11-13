@@ -1,0 +1,29 @@
+# Besoin décrit en langage simple.
+# Seules les lignes marquées « obligatoire » le sont : la plateforme comble le
+# reste et l'indique dans le rapport.
+
+module = "drone-voilure-fixe"
+nom = "Surveillance jour et nuit"
+
+endurance_h = 8          # obligatoire : heures de vol
+charge_utile_kg = 2.0    # obligatoire : caméra, calculateur, radio
+
+# Y a-t-il une piste dégagée d'au moins 100 m là où le drone décollera ?
+piste_disponible = "non"
+
+# --- Facultatif : décommentez une ligne pour imposer une valeur ---
+# charge_utile_w = 60
+# altitude_terrain_m = 400
+# temperature_max_c = 40
+# hauteur_de_vol_m = 600
+# vent_max_kmh = 35
+# envergure_max_m = 3.6
+# reserve_min = 30
+# moteur = "auto"              # auto, 4T, 2T ou 2T-ID
+# fabrication_locale = true
+
+# --- Réglages experts : un paramètre technique du calcul, par exemple une
+# --- valeur mesurée sur un prototype ---
+# [expert]
+# vz_montee = 2.0
+# rendement_helice = 0.70

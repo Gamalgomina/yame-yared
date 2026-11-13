@@ -1,0 +1,6 @@
+module = "moteur-electrique"
+nom = "Moteur de sustentation"
+
+regime_tr_min = 5000     # obligatoire
+couple_nm = 1.35         # ou bien puissance_w
+tension_v = 44.4

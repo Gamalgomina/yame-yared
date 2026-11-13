@@ -1,0 +1,7 @@
+module = "helice"
+nom = "Hélice de croisière"
+
+usage = "croisiere"      # obligatoire : croisiere ou sustentation
+puissance_w = 590
+vitesse_m_s = 20.6
+regime_tr_min = 5200

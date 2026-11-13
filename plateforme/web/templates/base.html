@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titre %}YAME / YARED{% endblock %}</title>
+<style>{% include "style.css" %}</style>
+</head>
+<body>
+<header class="barre">
+  <a class="marque" href="/">YAME <span>/ YARED</span></a>
+  <nav><a href="/">Accueil</a><a href="/etudes">Études</a><a href="/docs">API</a></nav>
+</header>
+<main>
+{% block contenu %}{% endblock %}
+</main>
+<footer>YAME part d'un besoin et dimensionne le système. YARED conçoit les composants par simulation. Version {{ version }}.</footer>
+</body>
+</html>

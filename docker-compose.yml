@@ -1,0 +1,32 @@
+# Démarrage :            docker compose up -d --build
+# Avec HTTPS automatique : docker compose --profile https up -d --build
+# Voir DEPLOIEMENT.md.
+
+services:
+  yame:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      # Écoute seulement sur la machine elle-même. Pour un accès depuis
+      # Internet, passez par le service « https » ci-dessous.
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - yame-donnees:/donnees
+
+  https:
+    profiles: ["https"]
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - yame
+    ports:
+      - "80:80"
+      - "443:443"
+    command: caddy reverse-proxy --from ${YAME_DOMAINE:-localhost} --to yame:8000
+    volumes:
+      - caddy-donnees:/data
+
+volumes:
+  yame-donnees:
+  caddy-donnees:

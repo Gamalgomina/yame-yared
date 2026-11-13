@@ -1,0 +1,5 @@
+<p><b>Objectif.</b> {{ etape.objectif }}</p>
+<ol>{% for a in etape.actions %}<li>{{ a }}</li>{% endfor %}</ol>
+{% if etape.moyens %}<p><b>Moyens.</b> {{ etape.moyens|join(" ; ") }}</p>{% endif %}
+{% if etape.securite %}<div class="securite"><b>Sécurité.</b> {{ etape.securite }}</div>{% endif %}
+<div class="critere"><b>Critère de réussite.</b> {{ etape.critere }}</div>

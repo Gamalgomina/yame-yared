@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titre %}{{ etude.titre }} — YAME / YARED{% endblock %}
+{% block contenu %}
+<h1>{{ etude.titre }}</h1>
+<p class="sous-titre">{{ nom_module }} — étude n° {{ identifiant }}, créée le {{ cree_le }}</p>
+<div class="actions">
+  <a class="bouton" href="/etudes/{{ identifiant }}/dossier.zip">Télécharger le dossier de conception</a>
+  <a class="bouton secondaire" href="/etudes/{{ identifiant }}/modifier">Modifier et recalculer</a>
+  <a class="bouton secondaire" href="/etudes/{{ identifiant }}/rapport.html">Rapport imprimable</a>
+  <form method="post" action="/etudes/{{ identifiant }}/supprimer" onsubmit="return confirm('Supprimer cette étude et son avancement ?');"><button class="danger" type="submit">Supprimer</button></form>
+</div>
+<div class="onglets">
+  <a class="actif" href="/etudes/{{ identifiant }}">Rapport</a>
+  <a href="/etudes/{{ identifiant }}/plan">Plan de prototypage ({{ nb_validees }}/{{ etude.etapes|length }})</a>
+</div>
+
+{% include "_etude.html" %}
+
+{% if composants %}
+<h2>Composants à concevoir avec YARED</h2>
+<p>Chaque composant a sa propre étude, avec ses cotes et son plan de prototypage. Le cahier des charges est déjà rempli à partir de ce système.</p>
+<div class="grille">
+{% for c in composants %}
+  <div class="carte"><h3>{{ c.libelle }}</h3><p>{{ noms.get(c.module, c.module) }}</p>
+  <form method="post" action="/etudes/{{ identifiant }}/composants/{{ loop.index0 }}"><button type="submit">Ouvrir l'étude du composant</button></form></div>
+{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

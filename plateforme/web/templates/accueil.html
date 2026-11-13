@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block contenu %}
+<h1>Que voulez-vous concevoir ?</h1>
+<p class="sous-titre">Décrivez le besoin en quelques réponses. La plateforme comble le reste, calcule, et vous remet un dossier
+de conception avec un plan de prototypage pas à pas.</p>
+
+<h2>YAME — un système complet</h2>
+<div class="grille">
+{% for m in familles %}
+  <div class="carte"><h3>{{ m.nom }}</h3><p>{{ m.description }}</p><div><a class="bouton" href="/modules/{{ m.identifiant }}">Nouvelle étude</a></div></div>
+{% endfor %}
+</div>
+
+<h2>YARED — un composant</h2>
+<div class="grille">
+{% for m in composants %}
+  <div class="carte"><h3>{{ m.nom }}</h3><p>{{ m.description }}</p><div><a class="bouton" href="/modules/{{ m.identifiant }}">Nouvelle étude</a></div></div>
+{% endfor %}
+</div>
+
+<h2>Études récentes</h2>
+{% if etudes %}
+{% include "_liste.html" %}
+<p><a href="/etudes">Toutes les études</a></p>
+{% else %}
+<p class="vide">Aucune étude pour l'instant.</p>
+{% endif %}
+{% endblock %}

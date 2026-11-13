@@ -1,0 +1,8 @@
+module = "drone-multirotor"
+nom = "Multirotor d'observation"
+
+charge_utile_kg = 1.0    # obligatoire
+endurance_min = 30       # obligatoire
+
+# rotors = "4"                 # 4, 6 ou 8
+# fabrication_locale = true

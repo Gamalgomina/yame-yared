@@ -1,0 +1,8 @@
+<div class="defilement"><table>
+<thead><tr><th>N°</th><th>Étude</th><th>Type</th><th>Créée le</th><th>Prototypage</th></tr></thead>
+<tbody>
+{% for e in etudes %}
+  <tr><td>{{ e.id }}</td><td><a href="/etudes/{{ e.id }}">{{ e.titre }}</a></td><td>{{ noms.get(e.module, e.module) }}</td><td>{{ e.cree_le }}</td>
+  <td>{% if e.etapes_validees %}{{ e.etapes_validees }} étape{{ "s" if e.etapes_validees > 1 }} validée{{ "s" if e.etapes_validees > 1 }}{% else %}non commencé{% endif %}</td></tr>
+{% endfor %}
+</tbody></table></div>

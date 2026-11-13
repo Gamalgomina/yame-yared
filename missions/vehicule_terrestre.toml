@@ -1,0 +1,10 @@
+module = "vehicule-terrestre"
+nom = "Porteur tout-terrain"
+
+charge_utile_kg = 150    # obligatoire : personnes et matériel
+autonomie_km = 80        # obligatoire
+
+terrain = "piste"              # route, piste ou sable
+# motorisation = "auto"        # auto, electrique ou thermique
+# vitesse_max_kmh = 40
+# pente_max_pct = 20

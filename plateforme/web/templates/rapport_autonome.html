@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ etude.titre }} — dossier de conception</title>
+<style>{% include "style.css" %}</style>
+</head>
+<body>
+<main>
+<h1>{{ etude.titre }}</h1>
+<p class="sous-titre">{{ nom_module }} — dossier de conception {{ "YAME" if etude.genre == "famille" else "YARED" }}, version {{ version }}, généré le {{ date }}</p>
+{% include "_etude.html" %}
+
+{% if etude.etapes %}
+<h2>Plan de prototypage</h2>
+<p>Les étapes se suivent strictement : ne commencez une étape que lorsque la précédente est validée.</p>
+{% for etape in etude.etapes %}
+{% set fait = avancement.get(loop.index) %}
+<div class="etape">
+  <h3><span class="numero">Étape {{ loop.index }}</span> {{ etape.titre }}
+  {% if fait %}<span class="pastille validee">validée le {{ fait.valide_le }}</span>{% endif %}</h3>
+  {% include "_etape.html" %}
+  {% if etape.mesures %}
+  <p><b>Mesures à relever</b></p>
+  <ul>{% for m in etape.mesures %}<li>{{ m }} : {% if fait %}<b>{{ fait.releves.get(m, "") }}</b>{% else %}__________{% endif %}</li>{% endfor %}</ul>
+  {% endif %}
+</div>
+{% endfor %}
+{% endif %}
+</main>
+</body>
+</html>

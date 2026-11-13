@@ -1,0 +1,7 @@
+module = "moteur-thermique"
+nom = "Moteur de drone 1,7 kW"
+
+puissance_max_w = 1750   # obligatoire
+puissance_croisiere_w = 720
+duree_h = 8.5
+# type = "auto"                # auto, 4T, 2T ou 2T-ID

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block titre %}Plan de prototypage — {{ etude.titre }}{% endblock %}
+{% block contenu %}
+<h1>{{ etude.titre }}</h1>
+<p class="sous-titre">{{ nom_module }} — étude n° {{ identifiant }}</p>
+<div class="onglets">
+  <a href="/etudes/{{ identifiant }}">Rapport</a>
+  <a class="actif" href="/etudes/{{ identifiant }}/plan">Plan de prototypage ({{ avancement|length }}/{{ etude.etapes|length }})</a>
+</div>
+
+<p>Les étapes se suivent strictement. Une étape ne peut être validée que si la précédente l'est, et seulement en saisissant
+les mesures demandées. Ces mesures servent ensuite à recaler les calculs.</p>
+<div class="progression"><div style="width: {{ (100 * avancement|length / etude.etapes|length)|round|int if etude.etapes else 0 }}%"></div></div>
+{% if erreur %}<div class="erreur">{{ erreur }}</div>{% endif %}
+{% if avancement|length == etude.etapes|length and etude.etapes %}
+<div class="critere etape"><b>Toutes les étapes sont validées.</b> Créez une nouvelle étude avec vos mesures pour recaler les calculs.</div>
+{% endif %}
+
+{% set courante = avancement|length + 1 %}
+{% for etape in etude.etapes %}
+{% set n = loop.index %}
+{% set fait = avancement.get(n) %}
+<div class="etape {{ 'courante' if n == courante }} {{ 'verrouillee-bloc' if n > courante }}" id="etape-{{ n }}">
+  <h3><span class="numero">Étape {{ n }}</span> {{ etape.titre }}
+  {% if fait %}<span class="pastille validee">validée le {{ fait.valide_le }}</span>
+  {% elif n == courante %}<span class="pastille en-cours">à faire maintenant</span>
+  {% else %}<span class="pastille verrouillee">verrouillée</span>{% endif %}</h3>
+  {% include "_etape.html" %}
+
+  {% if fait %}
+    <div class="releves"><b>Mesures relevées</b>
+    <ul>{% for m, v in fait.releves.items() %}<li>{{ m }} : <b>{{ v }}</b></li>{% endfor %}</ul></div>
+    {% if n == avancement|length %}
+    <form method="post" action="/etudes/{{ identifiant }}/plan/annuler"><button class="secondaire" type="submit">Annuler cette validation</button></form>
+    {% endif %}
+  {% elif n == courante %}
+    <form method="post" action="/etudes/{{ identifiant }}/plan/{{ n }}">
+      {% for m in etape.mesures %}
+      <div class="champ"><label for="m{{ loop.index0 }}">{{ m }} <span class="requis">*</span></label>
+      <input type="text" id="m{{ loop.index0 }}" name="m{{ loop.index0 }}" required></div>
+      {% endfor %}
+      <div class="champ"><label for="observations">Observations</label>
+      <textarea id="observations" name="observations" style="font-family:inherit"></textarea></div>
+      <div class="champ"><label><input type="checkbox" name="critere" value="oui" required> Le critère de réussite est atteint</label></div>
+      <button type="submit">Valider l'étape {{ n }}</button>
+    </form>
+  {% else %}
+    {% if etape.mesures %}<p class="releves"><b>Mesures à relever :</b> {{ etape.mesures|join(" ; ") }}</p>{% endif %}
+    <p class="releves">Validez d'abord l'étape {{ courante }}.</p>
+  {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

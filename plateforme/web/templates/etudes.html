@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block titre %}Études — YAME / YARED{% endblock %}
+{% block contenu %}
+<h1>Études</h1>
+{% if etudes %}
+{% include "_liste.html" %}
+{% else %}
+<p class="vide">Aucune étude pour l'instant. <a href="/">Commencer une étude</a>.</p>
+{% endif %}
+{% endblock %}
